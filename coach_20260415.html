@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forecast Coach Q2 — Apr 15, 2026</title>
+<style>
+  :root {
+    --red: #ef4444; --orange: #f97316; --yellow: #eab308; --green: #22c55e;
+    --blue: #3b82f6; --gray: #6b7280; --bg: #0f172a; --card: #1e293b;
+    --border: #334155; --text: #e2e8f0; --muted: #94a3b8; --accent: #6366f1;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.6; }
+
+  /* HEADER */
+  #topbar { position: sticky; top: 0; z-index: 100; background: #0f172a; border-bottom: 1px solid var(--border); padding: 12px 20px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+  #topbar h1 { font-size: 15px; font-weight: 700; color: #a5b4fc; }
+  .totals { display: flex; gap: 16px; flex-wrap: wrap; }
+  .total-chip { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: 12px; }
+  .total-chip span { font-weight: 700; color: #a5b4fc; }
+
+  /* FILTERS */
+  #filters { padding: 12px 20px; display: flex; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid var(--border); background: #0f172a; }
+  .filter-btn { border: 1px solid var(--border); background: var(--card); color: var(--muted); padding: 4px 12px; border-radius: 20px; cursor: pointer; font-size: 12px; transition: all .2s; }
+  .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* LAYOUT */
+  #main { padding: 20px; max-width: 1100px; margin: 0 auto; }
+
+  /* SECTION HEADERS */
+  .rm-header { display: flex; align-items: center; gap: 10px; padding: 14px 16px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; margin: 20px 0 10px; user-select: none; }
+  .rm-header h2 { font-size: 15px; font-weight: 700; flex: 1; }
+  .rm-header .rm-stats { font-size: 12px; color: var(--muted); }
+  .rm-header .chevron { color: var(--muted); transition: transform .2s; }
+  .rm-header.open .chevron { transform: rotate(180deg); }
+  .rm-deals { display: none; flex-direction: column; gap: 12px; }
+  .rm-deals.open { display: flex; }
+
+  /* DEAL CARDS */
+  .deal-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .deal-card[data-risk="red"] { border-left: 3px solid var(--red); }
+  .deal-card[data-risk="orange"] { border-left: 3px solid var(--orange); }
+  .deal-card[data-risk="green"] { border-left: 3px solid var(--green); }
+  .deal-card[data-risk="gray"] { border-left: 3px solid var(--gray); }
+
+  .deal-header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; }
+  .deal-header h3 { font-size: 13px; font-weight: 600; flex: 1; }
+  .deal-meta { font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+  .badge-red { background: rgba(239,68,68,.2); color: #fca5a5; }
+  .badge-orange { background: rgba(249,115,22,.2); color: #fdba74; }
+  .badge-yellow { background: rgba(234,179,8,.2); color: #fde047; }
+  .badge-green { background: rgba(34,197,94,.2); color: #86efac; }
+  .badge-gray { background: rgba(107,114,128,.2); color: #d1d5db; }
+  .score-bar-wrap { display: flex; align-items: center; gap: 6px; }
+  .score-bar { height: 4px; width: 48px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .score-bar-fill { height: 100%; border-radius: 2px; }
+
+  .deal-body { padding: 0 16px 16px; display: none; border-top: 1px solid var(--border); }
+  .deal-body.open { display: block; }
+
+  .pattern-box { background: rgba(99,102,241,.07); border-left: 2px solid var(--accent); border-radius: 4px; padding: 8px 12px; margin: 12px 0; font-size: 13px; color: var(--muted); }
+
+  /* MEDDPICC TABLE */
+  .medc-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 12px; }
+  .medc-table th { text-align: left; color: var(--muted); font-weight: 500; padding: 5px 8px; border-bottom: 1px solid var(--border); }
+  .medc-table td { padding: 5px 8px; border-bottom: 1px solid rgba(51,65,85,.5); vertical-align: top; }
+  .medc-table tr:last-child td { border-bottom: none; }
+  .medc-table td:first-child { white-space: nowrap; color: var(--muted); width: 130px; }
+  .st-ok { color: #86efac; }
+  .st-weak { color: #fde047; }
+  .st-empty { color: #6b7280; }
+  .medc-score { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  /* NEXT STEP */
+  .ns-badge { display: inline-block; margin: 8px 0 4px; }
+  .ns-text { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+
+  /* COACHING */
+  .coaching-title { font-size: 12px; font-weight: 600; color: #a5b4fc; margin: 12px 0 6px; }
+  .coaching-item { display: flex; gap: 8px; margin-bottom: 8px; font-size: 12px; }
+  .coaching-num { color: var(--accent); font-weight: 700; min-width: 16px; }
+  .coaching-item-title { font-weight: 600; color: var(--text); }
+  .coaching-item-body { color: var(--muted); margin-top: 2px; }
+
+  .exec-summary { background: rgba(15,23,42,.6); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; font-size: 12px; margin-top: 12px; }
+  .exec-summary strong { color: var(--text); }
+
+  /* SOURCES */
+  .sources-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+  .src-chip { font-size: 11px; padding: 2px 8px; border-radius: 4px; background: rgba(51,65,85,.5); }
+
+  /* COVERAGE TABLE */
+  .section-title { font-size: 14px; font-weight: 700; color: #a5b4fc; margin: 24px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  .cov-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .cov-table th { text-align: left; color: var(--muted); padding: 6px 8px; border-bottom: 1px solid var(--border); font-weight: 500; }
+  .cov-table td { padding: 5px 8px; border-bottom: 1px solid rgba(51,65,85,.4); }
+  .cov-table tr:hover td { background: rgba(99,102,241,.05); }
+  .cov-table .arr { text-align: right; font-weight: 600; }
+
+  /* TOP ACTIONS */
+  .actions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+  .action-col h3 { font-size: 12px; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .05em; }
+  .action-col h3.red { color: #fca5a5; }
+  .action-col h3.orange { color: #fdba74; }
+  .action-col h3.yellow { color: #fde047; }
+  .action-item { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; margin-bottom: 6px; font-size: 12px; }
+  .action-rm { font-size: 10px; color: var(--accent); font-weight: 600; margin-bottom: 2px; text-transform: uppercase; }
+  .action-deal { font-weight: 600; color: var(--text); }
+  .action-desc { color: var(--muted); margin-top: 2px; }
+
+  /* HUB TABLE */
+  .hub-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .hub-table th { text-align: left; color: var(--muted); padding: 6px 8px; border-bottom: 1px solid var(--border); }
+  .hub-table td { padding: 5px 8px; border-bottom: 1px solid rgba(51,65,85,.4); }
+  .urgent { color: #f97316; font-weight: 700; }
+
+  /* CHURN CARD */
+  .churn-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; font-size: 12px; display: flex; align-items: center; gap: 10px; }
+  .churn-card .ok { color: #86efac; }
+  .churn-card .warn { color: #fdba74; }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:2px;">📊 FORECAST COACH Q2</div>
+    <h1>Apr 15, 2026 &nbsp;·&nbsp; Minders / LATAM Channel Sales</h1>
+  </div>
+  <div class="totals">
+    <div class="total-chip">RM Total <span>$1,035,633</span></div>
+    <div class="total-chip">Best Case <span style="color:#86efac">$1,019,318</span></div>
+    <div class="total-chip">Worst Case <span style="color:#fca5a5">$16,315</span></div>
+    <div class="total-chip">Deals <span>27</span></div>
+  </div>
+</div>
+
+<div id="filters">
+  <span style="font-size:11px;color:var(--muted);align-self:center;">Filter:</span>
+  <button class="filter-btn active" onclick="filterDeals('all')">All Deals</button>
+  <button class="filter-btn" onclick="filterDeals('red')">🔴 High Risk</button>
+  <button class="filter-btn" onclick="filterDeals('orange')">🟠 Attention</button>
+  <button class="filter-btn" onclick="filterDeals('green')">🟢 On Track</button>
+  <button class="filter-btn" onclick="filterDeals('gray')">⚫ Closed/Churn</button>
+  <button class="filter-btn" onclick="expandAll()">Expand All</button>
+  <button class="filter-btn" onclick="collapseAll()">Collapse All</button>
+</div>
+
+<div id="main">
+
+<!-- COVERAGE TABLE -->
+<div class="section-title">📐 Source Coverage — RM Q2 Pipeline</div>
+<table class="cov-table">
+<thead><tr><th>Deal</th><th>RM</th><th>HubSpot</th><th>Salesforce</th><th style="text-align:right">ARR</th></tr></thead>
+<tbody>
+<tr><td>Localiza RFP</td><td>✅</td><td>✅</td><td>✅</td><td class="arr">$235,000</td></tr>
+<tr><td>Serasa (Expansion)</td><td>✅</td><td>❌</td><td>❌</td><td class="arr">$200,000</td></tr>
+<tr><td>Caju (New Business)</td><td>✅</td><td>✅</td><td>⚠️ Stage 2 / Renato Limao</td><td class="arr">$96,600</td></tr>
+<tr><td>Banco Guayaquil</td><td>✅</td><td>✅</td><td>⚠️ SF=Q3 Jul/26</td><td class="arr">$150,000</td></tr>
+<tr><td>CRM&amp;Bonus</td><td>✅</td><td>✅</td><td>✅</td><td class="arr">$50,000</td></tr>
+<tr><td>Asaas</td><td>✅</td><td>✅</td><td>⚠️ SF=Q4 Oct/26</td><td class="arr">$24,000</td></tr>
+<tr><td>Attus</td><td>✅</td><td>✅</td><td>✅ Closed Lost Apr 8 ✓</td><td class="arr">$24,000</td></tr>
+<tr><td>Sem Parar</td><td>✅</td><td>✅</td><td>✅</td><td class="arr">$24,000</td></tr>
+<tr><td>Gran Cursos</td><td>✅</td><td>✅</td><td>⚠️ SF=renewal Q3/2027</td><td class="arr">$17,777</td></tr>
+<tr><td>Lulo Bank</td><td>✅</td><td>✅</td><td>✅</td><td class="arr">$34,560</td></tr>
+<tr><td>Trii</td><td>✅</td><td>✅</td><td>✅</td><td class="arr">$34,560</td></tr>
+<tr><td>Distelsa</td><td>✅</td><td>✅</td><td>✅</td><td class="arr">$30,000</td></tr>
+<tr><td>Banco Covalto</td><td>✅</td><td>✅</td><td>✅</td><td class="arr">$30,000</td></tr>
+<tr><td>Supervielle</td><td>✅</td><td>✅</td><td>✅</td><td class="arr">$24,000</td></tr>
+<tr><td>Zenfi</td><td>✅</td><td>✅</td><td>✅</td><td class="arr">$24,560</td></tr>
+<tr><td>Tenpo</td><td>✅</td><td>❌</td><td>⚠️ SF=Q4 Oct/26 / Renato Limao</td><td class="arr">$30,000</td></tr>
+<tr><td>Migrante</td><td>✅</td><td>❌</td><td>✅</td><td class="arr">$1,296</td></tr>
+<tr><td>Arca Continental</td><td>✅</td><td>❌</td><td>✅</td><td class="arr">$3,965</td></tr>
+<tr><td>PraValer</td><td>✅</td><td>✅</td><td>✅</td><td class="arr">$11,664</td></tr>
+<tr><td>Nomad</td><td>✅</td><td>✅</td><td>✅</td><td class="arr">$4,651</td></tr>
+<tr><td>Gol (Expansion)</td><td>✅</td><td>❌</td><td>❌</td><td class="arr">$0</td></tr>
+<tr><td>Riachuelo</td><td>✅</td><td>❌</td><td>⚠️ SF=Q4 Dec/26</td><td class="arr">$0</td></tr>
+<tr><td>Embonor Chile</td><td>✅</td><td>❌</td><td>❌</td><td class="arr">$0</td></tr>
+<tr><td>Rocket La (Churn)</td><td>✅</td><td>❌</td><td>✅ Closed Lost ✓</td><td class="arr">$0</td></tr>
+<tr><td>ClearSale (Churn)</td><td>✅</td><td>✅</td><td>⚠️ Stage 2 / Luiz Gustavo</td><td class="arr">$0</td></tr>
+<tr><td>G4 Educação (Churn)</td><td>✅</td><td>✅</td><td>✅ Closed Lost ✓</td><td class="arr">$0</td></tr>
+<tr><td>Trela (Churn)</td><td>✅</td><td>✅</td><td>✅ Closed Lost ✓</td><td class="arr">$0</td></tr>
+</tbody>
+</table>
+<div style="font-size:11px;color:var(--muted);margin:8px 0 0;">
+  ✅✅✅ All 3 sources: <strong>20</strong> &nbsp;|&nbsp; RM+SF only: <strong>4</strong> &nbsp;|&nbsp; RM+HubSpot only: <strong>1</strong> &nbsp;|&nbsp; RM only: <strong>3</strong> &nbsp;|&nbsp;
+  🟠 SF quarter diverges: Asaas, Tenpo, Riachuelo, Banco Guayaquil &nbsp;|&nbsp;
+  🚨 SF without RM: Finsus (expired Apr 1)
+</div>
+
+<!-- MATI -->
+<div class="rm-header open" onclick="toggleRM(this)">
+  <span>👤</span>
+  <h2>Mati</h2>
+  <div class="rm-stats">$157,645 Best Case &nbsp;·&nbsp; 7 deals</div>
+  <span class="chevron">▼</span>
+</div>
+<div class="rm-deals open" id="rm-mati">
+
+  <!-- Lulo Bank -->
+  <div class="deal-card" data-risk="orange" data-rm="mati">
+    <div class="deal-header" onclick="toggleDeal(this)">
+      <span>🏦</span>
+      <h3>Lulo Bank</h3>
+      <div class="score-bar-wrap"><div class="score-bar"><div class="score-bar-fill" style="width:50%;background:#f97316"></div></div><span style="font-size:10px;color:var(--muted)">50%</span></div>
+      <span class="badge badge-orange">Stage 4 · PoV</span>
+      <div class="deal-meta">$34,560 · Close Apr 30</div>
+      <span style="color:var(--muted);font-size:11px">▶</span>
+    </div>
+    <div class="deal-body">
+      <div class="sources-row"><span class="src-chip">RM ✅</span><span class="src-chip">HubSpot ✅</span><span class="src-chip">SF ✅</span><span class="src-chip">BEST CASE</span></div>
+      <div class="pattern-box">📋 Regular weekly cadence (Apr 8, Mar 31, Mar 23, Mar 10). Apr 8 meeting defined scenario direction but no concrete customer commitment logged. Legal is simple (renewal only). The PoV is progressing without Metrics or an identified EB.</div>
+      <table class="medc-table">
+        <thead><tr><th>Field</th><th>Status</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>M — Metrics</td><td class="st-empty">❌ Empty</td><td>—</td></tr>
+          <tr><td>E — Economic Buyer</td><td class="st-empty">❌ Empty</td><td>—</td></tr>
+          <tr><td>D — Decision Criteria</td><td class="st-ok">✅</td><td>Technical validation / budget / procurement</td></tr>
+          <tr><td>D — Decision Process</td><td class="st-ok">✅</td><td>Validate use cases / usage vs contracted / budget</td></tr>
+          <tr><td>P — Paper Process</td><td class="st-ok">✅</td><td>New OF + renew current contract</td></tr>
+          <tr><td>I — Implicate Pain</td><td class="st-empty">❌ Empty</td><td>—</td></tr>
+          <tr><td>C — Champion</td><td class="st-ok">✅</td><td>Christian Martinez</td></tr>
+          <tr><td>C — Competitor</td><td class="st-weak">⚠️ Weak</td><td>Amplitude Plus (internal tier)</td></tr>
+        </tbody>
+      </table>
+      <div class="medc-score">MEDDPICC Score: 50% — 4 of 8 fields populated</div>
+      <div class="ns-badge"><span class="badge badge-red">Next Step Quality: Poor 🔴</span></div>
+      <div class="ns-text">No specific date, no customer-named owner, no future-dated activity. "Customer will define next steps" is not a next step.</div>
+      <div class="coaching-title">🎯 Coaching for Mati</div>
+      <div class="coaching-item"><span class="coaching-num">1.</span><div><div class="coaching-item-title">Lock in PoV success criteria this week</div><div class="coaching-item-body">Ask Christian Martinez directly: "What specific result confirms Amplitude is the right choice?" Without written criteria, any outcome can be contested by procurement.</div></div></div>
+      <div class="coaching-item"><span class="coaching-num">2.</span><div><div class="coaching-item-title">Identify the Economic Buyer before the PoV closes</div><div class="coaching-item-body">Christian is the Champion. Who signs the expanded renewal? Unidentified EBs are the #1 deal killer after a successful PoV. Get them into at least one conversation this week.</div></div></div>
+      <div class="coaching-item"><span class="coaching-num">3.</span><div><div class="coaching-item-title">Log a committed next step with a date</div><div class="coaching-item-body">"Customer confirms scenario selection by Apr 22" — not "waiting for customer to decide."</div></div></div>
+      <div class="exec-summary"><strong>🟠 Medium risk</strong> — Good engagement rhythm but no Metrics, no EB, no committed next step. Window to Apr 30 is tight.</div>
+    </div>
+  </div>
+
+  <!-- Trii -->
+  <div class="deal-card" data-risk="red" data-rm="mati">
+    <div class="deal-header" onclick="toggleDeal(this)">
+      <span>🏦</span><h3>Trii</h3>
+      <div class="score-bar-wrap"><div class="score-bar"><div class="score-bar-fill" style="width:88%;background:#ef4444"></div></div><span style="font-size:10px;color:var(--muted)">88%</span></div>
+      <span class="badge badge-red">36 days silent</span>
+      <div class="deal-meta">$34,560 · Close Jun 26</div>
+      <span style="color:var(--muted);font-size:11px">▶</span>
+    </div>
+    <div class="deal-body">
+      <div class="sources-row"><span class="src-chip">RM ✅</span><span class="src-chip">HubSpot ✅</span><span class="src-chip">SF ✅</span><span class="src-chip">BEST CASE</span></div>
+      <div class="pattern-box">📋 Intense engagement through early March (competitive analysis, new proposal, meeting Mar 3), then complete silence since Mar 10 — 36 days. Last action: "break or close" ultimatum (invoice Feb/Mar overage if not signed by Apr 1). No record of outcome.</div>
+      <table class="medc-table">
+        <thead><tr><th>Field</th><th>Status</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>M — Metrics</td><td class="st-ok">✅</td><td>Running >170% of contracted quota — high overage risk</td></tr>
+          <tr><td>E — Economic Buyer</td><td class="st-ok">✅</td><td>Diego Torres</td></tr>
+          <tr><td>D — Decision Criteria</td><td class="st-ok">✅</td><td>Safely cover current and forecast event volume</td></tr>
+          <tr><td>D — Decision Process</td><td class="st-ok">✅</td><td>Diego validates → EB aligns on budget/term → Minders issues OF</td></tr>
+          <tr><td>P — Paper Process</td><td class="st-ok">✅</td><td>Amendment to current contract</td></tr>
+          <tr><td>I — Implicate Pain</td><td class="st-empty">❌ Empty</td><td>—</td></tr>
+          <tr><td>C — Champion</td><td class="st-ok">✅</td><td>Diego Torres</td></tr>
+          <tr><td>C — Competitor</td><td class="st-ok">✅</td><td>PostHog ($50K YC discount in hand)</td></tr>
+        </tbody>
+      </table>
+      <div class="medc-score">MEDDPICC Score: 88% — 7 of 8 fields populated</div>
+      <div class="ns-badge"><span class="badge badge-red">Next Step Quality: Poor 🔴</span></div>
+      <div class="ns-text">Last update 36 days ago. Apr 1 invoice ultimatum outcome unknown. No future action logged.</div>
+      <div class="coaching-title">🎯 Coaching for Mati</div>
+      <div class="coaching-item"><span class="coaching-num">1.</span><div><div class="coaching-item-title">Determine real deal status TODAY</div><div class="coaching-item-body">Call Minders now: Was the Apr 1 invoice sent? Did Fede respond? 36 days of silence after a "break or close" action means the customer may have already decided internally (PostHog).</div></div></div>
+      <div class="coaching-item"><span class="coaching-num">2.</span><div><div class="coaching-item-title">If still alive: compete on scale, not price</div><div class="coaching-item-body">PostHog has a $50K YC discount — Mati cannot win on price. Winning argument: migration cost, long-term reliability at >170% volume, risk of building on an early-stage tool.</div></div></div>
+      <div class="coaching-item"><span class="coaching-num">3.</span><div><div class="coaching-item-title">Align close date: SF Jun 26 vs HubSpot Apr 30</div><div class="coaching-item-body">Pick one date reflecting the real decision timeline and update both systems.</div></div></div>
+      <div class="exec-summary"><strong>🔴 High risk</strong> — Well-qualified (88% MEDDPICC) but 36 days silent + PostHog competing. Call Minders today.</div>
+    </div>
+  </div>
+
+  <!-- Distelsa -->
+  <div class="deal-card" data-risk="orange" data-rm="mati">
+    <div class="deal-header" onclick="toggleDeal(this)">
+      <span>🏢</span><h3>Grupo Distelsa</h3>
+      <div class="score-bar-wrap"><div class="score-bar"><div class="score-bar-fill" style="width:75%;background:#f97316"></div></div><span style="font-size:10px;color:var(--muted)">75%</span></div>
+      <span class="badge badge-orange">Stage 2 · Qualification</span>
+      <div class="deal-meta">$30,000 · Close Jun 16</div>
+      <span style="color:var(--muted);font-size:11px">▶</span>
+    </div>
+    <div class="deal-body">
+      <div class="sources-row"><span class="src-chip">RM ✅</span><span class="src-chip">HubSpot ✅</span><span class="src-chip">SF ✅</span><span class="src-chip">BEST CASE</span></div>
+      <div class="pattern-box">📋 Multiple outreach attempts in March unanswered by Mario de Leon (Mar 6, 13, 18, 20). Deal advancing through partner effort, not customer pull. RFP process progressing internally but primary contact unresponsive.</div>
+      <table class="medc-table">
+        <thead><tr><th>Field</th><th>Status</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>M — Metrics</td><td class="st-ok">✅</td><td>360° customer view, maximize LTV, optimize multi-channel attribution</td></tr>
+          <tr><td>E — Economic Buyer</td><td class="st-ok">✅</td><td>Jose Augusto Sanchez</td></tr>
+          <tr><td>D — Decision Criteria</td><td class="st-ok">✅</td><td>RFP by Otto Guillermo Juarez — use-case validation, 360 profile, Braze native integration</td></tr>
+          <tr><td>D — Decision Process</td><td class="st-ok">✅</td><td>Agility/integration focus; 360 profile, Braze, data quality, Max App scalability</td></tr>
+          <tr><td>P — Paper Process</td><td class="st-empty">❌ Empty</td><td>—</td></tr>
+          <tr><td>I — Implicate Pain</td><td class="st-empty">❌ Empty</td><td>—</td></tr>
+          <tr><td>C — Champion</td><td class="st-weak">⚠️ Weak</td><td>Mario de Leon (unresponsive since Mar 18)</td></tr>
+          <tr><td>C — Competitor</td><td class="st-ok">✅</td><td>Segment; Salesforce Marketing Cloud</td></tr>
+        </tbody>
+      </table>
+      <div class="medc-score">MEDDPICC Score: 75% — 6 of 8 fields populated</div>
+      <div class="ns-badge"><span class="badge badge-yellow">Next Step Quality: Acceptable ⚠️</span></div>
+      <div class="ns-text">Apr 10 development update logged, but no specific date for next customer interaction. Mario unresponsive ~1 month.</div>
+      <div class="coaching-title">🎯 Coaching for Mati</div>
+      <div class="coaching-item"><span class="coaching-num">1.</span><div><div class="coaching-item-title">Mario is not reliable — find a parallel path to Otto or the EB</div><div class="coaching-item-body">The RFP is advancing through Otto Guillermo Juarez. Mati should ask Minders: is there an active line to Otto or Jose Augusto Sanchez directly? The Max App launch is a real compelling event — but requires a responsive contact.</div></div></div>
+      <div class="coaching-item"><span class="coaching-num">2.</span><div><div class="coaching-item-title">Align close date: SF Jun 16 vs HubSpot May 15 (32-day gap)</div><div class="coaching-item-body">Given Mario's unresponsiveness and the ongoing RFP, assess whether May 15 is realistic and update both systems.</div></div></div>
+      <div class="exec-summary"><strong>🟠 Medium risk</strong> — Strong qualification (6/8 MEDDPICC), EB known, compelling event real. Main risk: single-contact dependency on unresponsive Mario.</div>
+    </div>
+  </div>
+
+  <!-- Banco Covalto -->
+  <div class="deal-card" data-risk="orange" data-rm="mati">
+    <div class="deal-header" onclick="toggleDeal(this)">
+      <span>🏦</span><h3>Banco Covalto</h3>
+      <div class="score-bar-wrap"><div class="score-bar"><div class="score-bar-fill" style="width:75%;background:#f97316"></div></div><span style="font-size:10px;color:var(--muted)">75%</span></div>
+      <span class="badge badge-orange">Stage 2 · Qualification</span>
+      <div class="deal-meta">$30,000 · Close Jun 30</div>
+      <span style="color:var(--muted);font-size:11px">▶</span>
+    </div>
+    <div class="deal-body">
+      <div class="sources-row"><span class="src-chip">RM ✅</span><span class="src-chip">HubSpot ✅</span><span class="src-chip">SF ✅</span><span class="src-chip">BEST CASE</span></div>
+      <div class="pattern-box">📋 Good progressive momentum. Multi-stakeholder outreach in March, then direct engagement with Sergio Arias (newly appointed Deputy General Director) on Apr 8 and 13. Original compelling event (digital channel launch Mar, stabilize May) has now passed.</div>
+      <table class="medc-table">
+        <thead><tr><th>Field</th><th>Status</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>M — Metrics</td><td class="st-ok">✅</td><td>~9K visits/mo → ~1.5K leads → ~350 account openings; lacks real-time visibility</td></tr>
+          <tr><td>E — Economic Buyer</td><td class="st-ok">✅</td><td>Sergio Arias (Deputy General Director — recently promoted)</td></tr>
+          <tr><td>D — Decision Criteria</td><td class="st-ok">✅</td><td>Centralized data, segmentation/activation/experimentation, strategic partner posture</td></tr>
+          <tr><td>D — Decision Process</td><td class="st-ok">✅</td><td>NDA + proposal + tech review → Marketing/Product/Tech → Sergio escalates to CEO. MAP confirmed.</td></tr>
+          <tr><td>P — Paper Process</td><td class="st-empty">❌ Empty</td><td>—</td></tr>
+          <tr><td>I — Implicate Pain</td><td class="st-empty">❌ Empty</td><td>—</td></tr>
+          <tr><td>C — Champion</td><td class="st-ok">✅</td><td>Jorge Arriaga (Marketing Director)</td></tr>
+          <tr><td>C — Competitor</td><td class="st-ok">✅</td><td>Looker; HubSpot; Salesforce Marketing Cloud</td></tr>
+        </tbody>
+      </table>
+      <div class="medc-score">MEDDPICC Score: 75% — 6 of 8 fields populated</div>
+      <div class="ns-badge"><span class="badge badge-yellow">Next Step Quality: Acceptable ⚠️</span></div>
+      <div class="ns-text">In-person meeting with Sergio Arias being arranged — no specific confirmed date logged yet.</div>
+      <div class="coaching-title">🎯 Coaching for Mati</div>
+      <div class="coaching-item"><span class="coaching-num">1.</span><div><div class="coaching-item-title">Reframe the compelling event — the original has passed</div><div class="coaching-item-body">Digital channel launch was planned for March. Convert this into live pain: "Your new channels are live — are you getting visibility into conversion performance? This is exactly the moment Amplitude adds value."</div></div></div>
+      <div class="coaching-item"><span class="coaching-num">2.</span><div><div class="coaching-item-title">Lock in the Sergio Arias in-person meeting this week</div><div class="coaching-item-body">Sergio's promotion is a real opening. Confirm a specific date and log it in SF and HubSpot before week ends.</div></div></div>
+      <div class="exec-summary"><strong>🟡 Low risk</strong> — Well-structured deal (6/8 MEDDPICC). Main risk: compelling event has passed. Mati needs to reframe urgency and confirm Sergio meeting.</div>
+    </div>
+  </div>
+
+  <!-- Zenfi -->
+  <div class="deal-card" data-risk="red" data-rm="mati">
+    <div class="deal-header" onclick="toggleDeal(this)">
+      <span>💳</span><h3>Zenfi + Yo te presto</h3>
+      <div class="score-bar-wrap"><div class="score-bar"><div class="score-bar-fill" style="width:38%;background:#ef4444"></div></div><span style="font-size:10px;color:var(--muted)">38%</span></div>
+      <span class="badge badge-red">Proposal overdue</span>
+      <div class="deal-meta">$24,560 · Close Jun 26</div>
+      <span style="color:var(--muted);font-size:11px">▶</span>
+    </div>
+    <div class="deal-body">
+      <div class="sources-row"><span class="src-chip">RM ✅</span><span class="src-chip">HubSpot ✅</span><span class="src-chip">SF ✅</span><span class="src-chip">BEST CASE</span></div>
+      <div class="pattern-box">📋 Apr 6 meeting productive — product showcase, aligned on volume, agreed proposal in 7 days (~Apr 13). As of Apr 15, deadline has passed with no logged update. MEDDPICC is thin despite the warm meeting.</div>
+      <table class="medc-table">
+        <thead><tr><th>Field</th><th>Status</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>M — Metrics</td><td class="st-empty">❌ Empty</td><td>—</td></tr>
+          <tr><td>E — Economic Buyer</td><td class="st-ok">✅</td><td>Manuel de la Torre</td></tr>
+          <tr><td>D — Decision Criteria</td><td class="st-empty">❌ Empty</td><td>—</td></tr>
+          <tr><td>D — Decision Process</td><td class="st-weak">⚠️ Weak</td><td>Mapping EB (EB = Champion — single-threaded risk)</td></tr>
+          <tr><td>P — Paper Process</td><td class="st-empty">❌ Empty</td><td>—</td></tr>
+          <tr><td>I — Implicate Pain</td><td class="st-empty">❌ Empty</td><td>—</td></tr>
+          <tr><td>C — Champion</td><td class="st-ok">✅</td><td>Manuel de la Torre (same as EB)</td></tr>
+          <tr><td>C — Competitor</td><td class="st-empty">❌ Empty</td><td>—</td></tr>
+        </tbody>
+      </table>
+      <div class="medc-score">MEDDPICC Score: 38% — 3 of 8 fields populated</div>
+      <div class="ns-badge"><span class="badge badge-red">Next Step Quality: Poor 🔴</span></div>
+      <div class="ns-text">7-day proposal deadline from Apr 6 has expired. No proposal sent or follow-up logged.</div>
+      <div class="coaching-title">🎯 Coaching for Mati</div>
+      <div class="coaching-item"><span class="coaching-num">1.</span><div><div class="coaching-item-title">Proposal deadline has passed — most urgent action in Mati's portfolio</div><div class="coaching-item-body">The Apr 6 meeting ended with a clear commitment: proposal in 7 days. Was it sent? If yes, what was Manuel's reaction? If no, what is the blocker? A missed self-imposed deadline with a warm customer signals lack of follow-through.</div></div></div>
+      <div class="coaching-item"><span class="coaching-num">2.</span><div><div class="coaching-item-title">Don't send a proposal without Metrics — it becomes a price negotiation</div><div class="coaching-item-body">Manuel is both EB and Champion — no internal advocate building value before the proposal lands. Include a quantified business case: what is the unified Zenfi + Yotepresto view worth?</div></div></div>
+      <div class="coaching-item"><span class="coaching-num">3.</span><div><div class="coaching-item-title">Map Decision Criteria and competitive landscape before closing</div><div class="coaching-item-body">One pre-proposal conversation to ask "What does success look like?" and "Who else are you talking to?" dramatically increases the odds.</div></div></div>
+      <div class="exec-summary"><strong>🔴 High risk</strong> — Warm deal, missed proposal deadline, 38% MEDDPICC. Manuel is the only contact. Act today.</div>
+    </div>
+  </div>
+
+  <!-- Arca Continental -->
+  <div class="deal-card" data-risk="orange" data-rm="mati">
+    <div class="deal-header" onclick="toggleDeal(this)">
+      <span>🏢</span><h3>Arca Continental</h3>
+      <div class="score-bar-wrap"><div class="score-bar"><div class="score-bar-fill" style="width:63%;background:#f97316"></div></div><span style="font-size:10px;color:var(--muted)">63%</span></div>
+      <span class="badge badge-yellow">Stage 5 · Proposal</span>
+      <div class="deal-meta">$3,965 · Close Jun 26</div>
+      <span style="color:var(--muted);font-size:11px">▶</span>
+    </div>
+    <div class="deal-body">
+      <div class="sources-row"><span class="src-chip">RM ✅</span><span class="src-chip">HubSpot ❌</span><span class="src-chip">SF ✅</span><span class="src-chip">BEST CASE</span></div>
+      <div class="pattern-box">📋 Consistent stable rhythm — weekly MR updates through Apr 8. Minders supporting customer through internal procurement. Customer meeting planned week of Apr 14.</div>
+      <div class="coaching-title">🎯 Coaching for Mati</div>
+      <div class="coaching-item"><span class="coaching-num">1.</span><div><div class="coaching-item-title">Use Apr 14 meeting to validate business case with Obed Rosas</div><div class="coaching-item-body">Metrics are empty at Stage 5. Ask Obed: "What usage data or business outcomes can we reference in the renewal justification?"</div></div></div>
+      <div class="coaching-item"><span class="coaching-num">2.</span><div><div class="coaching-item-title">Log meeting outcome and add to HubSpot</div><div class="coaching-item-body">After the meeting, log next step with signature target or procurement submission deadline in both SF and HubSpot.</div></div></div>
+      <div class="exec-summary"><strong>🟡 Low risk</strong> — Small deal in advanced stage. Confirm Apr 14 meeting outcome and add to HubSpot.</div>
+    </div>
+  </div>
+
+  <!-- Rocket La -->
+  <div class="deal-card" data-risk="gray" data-rm="mati">
+    <div class="deal-header" onclick="toggleDeal(this)">
+      <span>⚠️</span><h3>Rocket La (Churn)</h3>
+      <span class="badge badge-gray">Closed Lost ✓</span>
+      <div class="deal-meta">$0 · SF aligned</div>
+      <span style="color:var(--muted);font-size:11px">▶</span>
+    </div>
+    <div class="deal-body">
+      <div class="churn-card"><span class="ok">✅</span> SF aligned with RM churn — <code>Rocket.la | Renewal | 2026-07</code> Closed Lost. <span class="warn">🟡 Document churn reason with Minders for partner history.</span></div>
+    </div>
+  </div>
+
+</div><!-- end rm-mati -->
+
+<!-- ALINE ONISHI -->
+<div class="rm-header" onclick="toggleRM(this)">
+  <span>👤</span>
+  <h2>Aline Onishi</h2>
+  <div class="rm-stats">$672,692 Best Case · $16,315 Worst Case &nbsp;·&nbsp; 15 deals</div>
+  <span class="chevron">▼</span>
+</div>
+<div class="rm-deals" id="rm-aline">
+
+  <!-- Localiza -->
+  <div class="deal-card" data-risk="green" data-rm="aline">
+    <div class="deal-header" onclick="toggleDeal(this)">
+      <span>🚗</span><h3>Localiza RFP</h3>
+      <div class="score-bar-wrap"><div class="score-bar"><div class="score-bar-fill" style="width:75%;background:#22c55e"></div></div><span style="font-size:10px;color:var(--muted)">75%</span></div>
+      <span class="badge badge-green">Stage 4 · PoV</span>
+      <div class="deal-meta">$235,000 · Close Jun 19</div>
+      <span style="color:var(--muted);font-size:11px">▶</span>
+    </div>
+    <div class="deal-body">
+      <div class="sources-row"><span class="src-chip">RM ✅</span><span class="src-chip">HubSpot ✅</span><span class="src-chip">SF ✅</span><span class="src-chip">BEST CASE</span></div>
+      <div class="pattern-box">📋 Excellent momentum and multi-threaded engagement. Apr 8: SDK starts Apr 13, trainings week of Apr 20, success criteria shared Apr 9. Active across Product, Data, Engineering. Risk: PoV running against Mixpanel in parallel.</div>
+      <table class="medc-table">
+        <thead><tr><th>Field</th><th>Status</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>M — Metrics</td><td class="st-ok">✅</td><td>Reduce time to insight; improve retention; lower support rates; measure product change impact</td></tr>
+          <tr><td>E — Economic Buyer</td><td class="st-ok">✅</td><td>Bruno (Diretor Seminovos) — approval tied to PoC success</td></tr>
+          <tr><td>D — Decision Criteria</td><td class="st-ok">✅</td><td>Funnels, cohorts, behavioral analysis, Session Replay; scalability for expansion</td></tr>
+          <tr><td>D — Decision Process</td><td class="st-ok">✅</td><td>Open RFP; structured POC with defined criteria; purchase conditional on PoC success</td></tr>
+          <tr><td>P — Paper Process</td><td class="st-empty">❌ Empty</td><td>—</td></tr>
+          <tr><td>I — Implicate Pain</td><td class="st-empty">❌ Empty</td><td>—</td></tr>
+          <tr><td>C — Champion</td><td class="st-ok">✅</td><td>Rafael Reggiani + Guilherme Marcelino</td></tr>
+          <tr><td>C — Competitor</td><td class="st-ok">✅</td><td>Mixpanel (being tested in parallel)</td></tr>
+        </tbody>
+      </table>
+      <div class="medc-score">MEDDPICC Score: 75% — 6 of 8 fields populated</div>
+      <div class="ns-badge"><span class="badge badge-yellow">Next Step Quality: Acceptable ⚠️</span></div>
+      <div class="ns-text">Strong activities logged, but no single future-dated PoV milestone captured as the next step.</div>
+      <div class="coaching-title">🎯 Coaching for Aline</div>
+      <div class="coaching-item"><span class="coaching-num">1.</span><div><div class="coaching-item-title">Formalize the PoC success plan before Mixpanel does</div><div class="coaching-item-body">Localiza shared criteria on Apr 9. Send a written success plan document to Reggiani this week. Whichever vendor formalizes criteria first frames the evaluation in their favor.</div></div></div>
+      <div class="coaching-item"><span class="coaching-num">2.</span><div><div class="coaching-item-title">Log the next formal PoV milestone with a specific date</div><div class="coaching-item-body">Schedule the first progress review now (e.g., May 5) and log it in SF and HubSpot as the next step.</div></div></div>
+      <div class="coaching-item"><span class="coaching-num">3.</span><div><div class="coaching-item-title">Start mapping Paper Process now</div><div class="coaching-item-body">Bruno's approval activates immediately after PoC success — ask Reggiani: "What does procurement look like from PoC success to signed order form?" Avoid a 4-week post-win stall.</div></div></div>
+      <div class="exec-summary"><strong>🟢 Best deal in portfolio</strong> — $235K, strong MEDDPICC, active multi-threaded PoV. Only risk: Mixpanel competing. Formalizing the success plan this week is the highest-leverage action.</div>
+    </div>
+  </div>
+
+  <!-- Serasa -->
+  <div class="deal-card" data-risk="red" data-rm="aline">
+    <div class="deal-header" onclick="toggleDeal(this)">
+      <span>💰</span><h3>Serasa (Expansion) — Luiz Gustavo</h3>
+      <div class="score-bar-wrap"><div class="score-bar"><div class="score-bar-fill" style="width:0%;background:#ef4444"></div></div><span style="font-size:10px;color:var(--muted)">0%</span></div>
+      <span class="badge badge-red">No SF · No HubSpot</span>
+      <div class="deal-meta">$200,000 · No close date</div>
+      <span style="color:var(--muted);font-size:11px">▶</span>
+    </div>
+    <div class="deal-body">
+      <div class="sources-row"><span class="src-chip">RM ✅</span><span class="src-chip">HubSpot ❌</span><span class="src-chip">SF ❌</span><span class="src-chip">BEST CASE</span></div>
+      <div class="pattern-box">📋 $200K deal with no record beyond the RM spreadsheet. Zero MEDDPICC, no next step, no history.</div>
+      <div class="coaching-title">🎯 Coaching for Aline</div>
+      <div class="coaching-item"><span class="coaching-num">1.</span><div><div class="coaching-item-title">$200K with zero system presence cannot be forecasted</div><div class="coaching-item-body">Create the SF opp and HubSpot deal today. Then ask: What is the current status with Luiz Gustavo? What has happened since this appeared in the RM?</div></div></div>
+      <div class="coaching-item"><span class="coaching-num">2.</span><div><div class="coaching-item-title">Treat as new qualification — not an assumption</div><div class="coaching-item-body">With 0% MEDDPICC, this needs a full discovery conversation before it can remain in Best Case. Get at least an EB name, a stage, and a next step date this week.</div></div></div>
+      <div class="exec-summary"><strong>🔴 Highest-priority risk in the entire pipeline</strong> — $200K with no SF, no HubSpot, no MEDDPICC, no next step. Create the opp today.</div>
+    </div>
+  </div>
+
+  <!-- Caju -->
+  <div class="deal-card" data-risk="orange" data-rm="aline">
+    <div class="deal-header" onclick="toggleDeal(this)">
+      <span>💳</span><h3>Caju (New Business) — Renato Limao</h3>
+      <div class="score-bar-wrap"><div class="score-bar"><div class="score-bar-fill" style="width:38%;background:#f97316"></div></div><span style="font-size:10px;color:var(--muted)">38%</span></div>
+      <span class="badge badge-orange">Stage mismatch SF/HUB</span>
+      <div class="deal-meta">$96,600 SF / $81,600 HUB · Close Jun 25</div>
+      <span style="color:var(--muted);font-size:11px">▶</span>
+    </div>
+    <div class="deal-body">
+      <div class="sources-row"><span class="src-chip">RM ✅</span><span class="src-chip">HubSpot ✅</span><span class="src-chip">SF ✅ (Renato Limao)</span><span class="src-chip">BEST CASE</span></div>
+      <div class="pattern-box">📋 Two contradictory system readings: HubSpot Stage 4-Evaluate (vendor survey running), SF Stage 2-Qual. Apr 6 positive: CLM and Data teams aligned, next use case session scheduled. Real momentum but no committed date.</div>
+      <table class="medc-table">
+        <thead><tr><th>Field</th><th>Status</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>M — Metrics</td><td class="st-empty">❌ Empty</td><td>—</td></tr>
+          <tr><td>E — Economic Buyer</td><td class="st-ok">✅</td><td>Marcelo Ogava (Diretor de Dados)</td></tr>
+          <tr><td>D — Decision Criteria</td><td class="st-empty">❌ Empty</td><td>—</td></tr>
+          <tr><td>D — Decision Process</td><td class="st-empty">❌ Empty</td><td>—</td></tr>
+          <tr><td>P — Paper Process</td><td class="st-empty">❌ Empty</td><td>—</td></tr>
+          <tr><td>I — Implicate Pain</td><td class="st-empty">❌ Empty</td><td>—</td></tr>
+          <tr><td>C — Champion</td><td class="st-ok">✅</td><td>Felipe Mosci (Head of Product)</td></tr>
+          <tr><td>C — Competitor</td><td class="st-ok">✅</td><td>Pendo; Mixpanel (vendor survey running)</td></tr>
+        </tbody>
+      </table>
+      <div class="medc-score">MEDDPICC Score: 38% — 3 of 8 fields populated</div>
+      <div class="coaching-title">🎯 Coaching for Aline</div>
+      <div class="coaching-item"><span class="coaching-num">1.</span><div><div class="coaching-item-title">Update SF to Stage 4 and sync with Renato Limao</div><div class="coaching-item-body">Vendor survey is running at Stage 4. Decisions are being made now. SF stuck at Stage 2 means Amplitude's tracking is misaligned with the actual deal timeline.</div></div></div>
+      <div class="coaching-item"><span class="coaching-num">2.</span><div><div class="coaching-item-title">Influence vendor survey criteria before it closes</div><div class="coaching-item-body">Work with Felipe Mosci (Champion) to understand: What criteria are being weighted? Get ahead of the Pendo/Mixpanel positioning now — this is the highest-leverage action.</div></div></div>
+      <div class="coaching-item"><span class="coaching-num">3.</span><div><div class="coaching-item-title">Align deal value: SF $96,600 vs HubSpot $81,600</div><div class="coaching-item-body">A $15K discrepancy is a credibility issue when the proposal lands. Agree on the correct ARR and update both systems before the next customer interaction.</div></div></div>
+      <div class="exec-summary"><strong>🟠 Medium risk</strong> — Real momentum (Apr 6 alignment, vendor survey active) but thin MEDDPICC (38%) and system mismatch. Next 2 weeks are critical.</div>
+    </div>
+  </div>
+
+  <!-- CRM&Bonus -->
+  <div class="deal-card" data-risk="orange" data-rm="aline">
+    <div class="deal-header" onclick="toggleDeal(this)">
+      <span>🎯</span><h3>CRM&amp;Bonus</h3>
+      <div class="score-bar-wrap"><div class="score-bar"><div class="score-bar-fill" style="width:88%;background:#f97316"></div></div><span style="font-size:10px;color:var(--muted)">88%</span></div>
+      <span class="badge badge-orange">15 days silent · POC stalled</span>
+      <div class="deal-meta">$50,000 · Close May 29</div>
+      <span style="color:var(--muted);font-size:11px">▶</span>
+    </div>
+    <div class="deal-body">
+      <div class="sources-row"><span class="src-chip">RM ✅</span><span class="src-chip">HubSpot ✅</span><span class="src-chip">SF ✅</span><span class="src-chip">BEST CASE</span></div>
+      <div class="pattern-box">📋 Good cadence through Mar 31. Mar 26: Experiment session with ~60 attendees, strong feedback. Mar 31: POC kickoff planned. Since then: 15 days of silence. Jack has a Mixpanel proposal in hand.</div>
+      <div class="coaching-title">🎯 Coaching for Aline</div>
+      <div class="coaching-item"><span class="coaching-num">1.</span><div><div class="coaching-item-title">Why did the Mar 31 POC not start? Get the answer today</div><div class="coaching-item-body">The gap between strong Mar 26 session (60 attendees) and 15 days of silence at Stage 5 is a red flag. Jack having a Mixpanel proposal suggests he may be using the POC delay as cover while evaluating Mixpanel.</div></div></div>
+      <div class="coaching-item"><span class="coaching-num">2.</span><div><div class="coaching-item-title">Escalate to Andre Barbosa (EB) to unblock Jack and Nico</div><div class="coaching-item-body">Andre already approved the proposal process. Help Minders ask him directly: "We are ready to start the POC — what needs to happen on your side to get Jack and Nico in the room?"</div></div></div>
+      <div class="coaching-item"><span class="coaching-num">3.</span><div><div class="coaching-item-title">Convert Experiment enthusiasm into ROI vs. Mixpanel</div><div class="coaching-item-body">60 attendees gave strong feedback. Estimate: if Experiment drives 1 additional successful test per quarter, what is the revenue impact? That number counters Mixpanel's 40% price advantage.</div></div></div>
+      <div class="exec-summary"><strong>🟠 Medium risk</strong> — Well-qualified (88% MEDDPICC) but 15-day silence + active Mixpanel proposal. Escalate to Andre Barbosa this week.</div>
+    </div>
+  </div>
+
+  <!-- Asaas -->
+  <div class="deal-card" data-risk="orange" data-rm="aline">
+    <div class="deal-header" onclick="toggleDeal(this)">
+      <span>📉</span><h3>Asaas</h3>
+      <div class="score-bar-wrap"><div class="score-bar"><div class="score-bar-fill" style="width:0%;background:#ef4444"></div></div><span style="font-size:10px;color:var(--muted)">0%</span></div>
+      <span class="badge badge-orange">SF=Q4 Oct/26</span>
+      <div class="deal-meta">$24,000 · Close Jun 30 (HUB)</div>
+      <span style="color:var(--muted);font-size:11px">▶</span>
+    </div>
+    <div class="deal-body">
+      <div class="sources-row"><span class="src-chip">RM ✅</span><span class="src-chip">HubSpot ✅</span><span class="src-chip">SF ✅ Q4/Oct</span><span class="src-chip">BEST CASE</span></div>
+      <div class="pattern-box">📋 Long cycle with major gaps: Jan 9 → Apr 9 = 3 months of silence. Now positive: Pedro reporting good feedback from free usage, starting app tests. Hottest moment in the deal — but 0% MEDDPICC.</div>
+      <div class="coaching-title">🎯 Coaching for Aline</div>
+      <div class="coaching-item"><span class="coaching-num">1.</span><div><div class="coaching-item-title">Schedule the alignment meeting this week — momentum windows close fast</div><div class="coaching-item-body">Pedro's Apr 9 signal is the first real opening in 3 months. Get a calendar invite to Pedro today. If no meeting in 5 business days, risk of another ghost cycle is high.</div></div></div>
+      <div class="coaching-item"><span class="coaching-num">2.</span><div><div class="coaching-item-title">Use the meeting to identify the Economic Buyer</div><div class="coaching-item-body">Pedro is the technical contact. Ask Minders to get the answer to: "Besides yourself, who else needs to be involved in the decision to move forward?" That unlocks the deal.</div></div></div>
+      <div class="coaching-item"><span class="coaching-num">3.</span><div><div class="coaching-item-title">Align timeline: RM/HUB Q2 vs SF Q4/Oct</div><div class="coaching-item-body">Stage 2 with 0% MEDDPICC closing Q2 is aggressive. Discuss with Minders: is Q2 realistic? If not, update RM to avoid pipeline inflation.</div></div></div>
+      <div class="exec-summary"><strong>🟠 Medium risk</strong> — Good re-engagement signal but 0% MEDDPICC and Q4 SF close. Schedule meeting this week.</div>
+    </div>
+  </div>
+
+  <!-- Attus -->
+  <div class="deal-card" data-risk="gray" data-rm="aline">
+    <div class="deal-header" onclick="toggleDeal(this)">
+      <span>❌</span><h3>Attus — CONFIRMED CLOSED LOST</h3>
+      <span class="badge badge-gray">SF: Closed Lost Apr 8 ✓</span>
+      <div class="deal-meta">$24,000 → remove from Q2</div>
+      <span style="color:var(--muted);font-size:11px">▶</span>
+    </div>
+    <div class="deal-body">
+      <div class="sources-row"><span class="src-chip">RM ✅</span><span class="src-chip">HubSpot ✅</span><span class="src-chip">SF ✅ Closed Lost (Marilisa)</span></div>
+      <div class="pattern-box">📋 Strong technical evaluation → progressive disengagement → 5 failed contact attempts → breakup email Mar 31 → SF: Closed Lost Apr 8, 2026. Well-qualified deal (6/8 MEDDPICC) lost in the ghost phase.</div>
+      <div class="churn-card"><span style="color:#fca5a5">🔴</span> Remove Attus from active Q2 pipeline in RM spreadsheet. SF Opp ID: <code>006VH00000j0CnJYAU</code></div>
+      <div class="churn-card"><span style="color:#fde047">🟡</span> Capture loss reason (price / Mixpanel / internal reprioritization?). Log in SF + HubSpot for re-engagement if Mixpanel implementation stalls in Q3.</div>
+    </div>
+  </div>
+
+  <!-- Sem Parar -->
+  <div class="deal-card" data-risk="red" data-rm="aline">
+    <div class="deal-header" onclick="toggleDeal(this)">
+      <span>🔄</span><h3>Sem Parar</h3>
+      <div class="score-bar-wrap"><div class="score-bar"><div class="score-bar-fill" style="width:63%;background:#ef4444"></div></div><span style="font-size:10px;color:var(--muted)">63%</span></div>
+      <span class="badge badge-red">POC req. 8 days unscheduled</span>
+      <div class="deal-meta">$24,000 · Close Jun 30</div>
+      <span style="color:var(--muted);font-size:11px">▶</span>
+    </div>
+    <div class="deal-body">
+      <div class="sources-row"><span class="src-chip">RM ✅</span><span class="src-chip">HubSpot ✅</span><span class="src-chip">SF ✅</span><span class="src-chip">BEST CASE</span></div>
+      <div class="pattern-box">📋 Ghost-and-re-engage cycle with single-contact dependency. Mar 19: Dani agrees to lunch → Mar 27: Dani sick, misses event → Mar 30: Nico emails CTO Vicent → Apr 7: Dani responds asking for POC. 8 days later: no meeting scheduled, no other stakeholders engaged.</div>
+      <table class="medc-table">
+        <thead><tr><th>Field</th><th>Status</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>M — Metrics</td><td class="st-ok">✅</td><td>Smarter segmentation; A/B testing tied to behavior; reliable data foundation; reduce fragmented tools</td></tr>
+          <tr><td>E — Economic Buyer</td><td class="st-weak">⚠️ Weak</td><td>Daniela Guillen — identified but not the real EB. CTO Vicente is the EB and has never been engaged</td></tr>
+          <tr><td>D — Decision Criteria</td><td class="st-ok">✅</td><td>Full mobile adherence (SuperApp); Salesforce integration critical; mobile-first use cases</td></tr>
+          <tr><td>D — Decision Process</td><td class="st-ok">✅</td><td>Alignment across Product, CX, leadership; Director-level peer + CFO involvement needed</td></tr>
+          <tr><td>P — Paper Process</td><td class="st-empty">❌ Empty</td><td>—</td></tr>
+          <tr><td>I — Implicate Pain</td><td class="st-empty">❌ Empty</td><td>—</td></tr>
+          <tr><td>C — Champion</td><td class="st-weak">⚠️ Weak</td><td>Daniela Guillen — mid-level, no budget authority, disappears for weeks at a time</td></tr>
+          <tr><td>C — Competitor</td><td class="st-ok">✅</td><td>Mixpanel (mentioned in next step); Google Analytics Premium</td></tr>
+        </tbody>
+      </table>
+      <div class="medc-score">MEDDPICC Score: 63% — 5 of 8 fields populated</div>
+      <div class="ns-badge"><span class="badge badge-red">Next Step Quality: Poor 🔴</span></div>
+      <div class="ns-text">POC requested 8 days ago. No meeting scheduled. No date, no named customer owner, no action to engage Vicente (CTO/EB).</div>
+      <div class="coaching-title">🎯 Coaching for Aline</div>
+      <div class="coaching-item"><span class="coaching-num">1.</span><div><div class="coaching-item-title">EB not engaged is the primary risk — not the POC itself</div><div class="coaching-item-body">Vicente (CTO) has never been in a meeting. Starting a POC without the EB means results will be presented to someone without decision authority. Before approving the POC plan, define: how and when does Vicente enter the conversation? Via Daniela facilitating, Nico's direct outreach, or an executive event?</div></div></div>
+      <div class="coaching-item"><span class="coaching-num">2.</span><div><div class="coaching-item-title">Schedule the POC kickoff TODAY — Dani's pattern shows she disappears</div><div class="coaching-item-body">Dani came back after 3 weeks with a POC request — strong signal. But every day without a calendar invite increases risk she goes dark again. Send a specific invite with two time options in the next 5 business days.</div></div></div>
+      <div class="coaching-item"><span class="coaching-num">3.</span><div><div class="coaching-item-title">Use the kickoff to expand beyond Dani — include Director-level peer and CFO</div><div class="coaching-item-body">The Decision Process explicitly mentions these stakeholders. The kickoff is the ideal moment: "To make this most valuable, we'd like to include the broader team from the start." Expanding contacts protects the deal if Dani disappears again.</div></div></div>
+      <div class="coaching-item"><span class="coaching-num">4.</span><div><div class="coaching-item-title">Mixpanel is in the conversation but not documented in Competitor field</div><div class="coaching-item-body">Clarify with Minders: Is Mixpanel being formally evaluated? Who is running that evaluation internally? Log it in SF.</div></div></div>
+      <div class="exec-summary"><strong>🔴 High risk</strong> — Stage 3 with ghost-cycle Champion, unengaged CTO/EB, POC unscheduled 8 days after request. Discuss with Aline whether to keep in Q2 or move to Q3 with a clear recovery plan.</div>
+    </div>
+  </div>
+
+  <!-- Gran Cursos -->
+  <div class="deal-card" data-risk="red" data-rm="aline">
+    <div class="deal-header" onclick="toggleDeal(this)">
+      <span>📚</span><h3>Gran Cursos (Expansion)</h3>
+      <div class="score-bar-wrap"><div class="score-bar"><div class="score-bar-fill" style="width:25%;background:#ef4444"></div></div><span style="font-size:10px;color:var(--muted)">25%</span></div>
+      <span class="badge badge-red">Ghosting · Close May 30</span>
+      <div class="deal-meta">$17,777 · Close May 30</div>
+      <span style="color:var(--muted);font-size:11px">▶</span>
+    </div>
+    <div class="deal-body">
+      <div class="sources-row"><span class="src-chip">RM ✅</span><span class="src-chip">HubSpot ✅</span><span class="src-chip">SF ✅ renewal Q3/2027 only</span><span class="src-chip">BEST CASE</span></div>
+      <div class="pattern-box">📋 Progressive ghosting. Carol and Leo unresponsive since mid-March. Mar 17 CMO Summit invite ignored. Mar 20 no reply. OF approval depends on Alex Ivonika who has never been directly engaged.</div>
+      <div class="coaching-title">🎯 Coaching for Aline</div>
+      <div class="coaching-item"><span class="coaching-num">1.</span><div><div class="coaching-item-title">Champion path is broken — escalate directly to Alex Ivonika</div><div class="coaching-item-body">Carol and Leo unresponsive for a month. Alex Ivonika is the approver but has never been in a conversation. Find his direct contact (LinkedIn, Amplitude account team, or Carol's email) and reach out this week.</div></div></div>
+      <div class="coaching-item"><span class="coaching-num">2.</span><div><div class="coaching-item-title">Create a Q2 expansion opp in SF</div><div class="coaching-item-body">SF only has a 2027 renewal. If this deal is actively being worked, create a separate Q2 expansion opp with correct ARR and close date.</div></div></div>
+      <div class="coaching-item"><span class="coaching-num">3.</span><div><div class="coaching-item-title">Decision deadline: if no response by Apr 22, move to Q3</div><div class="coaching-item-body">May 30 close, $17,777 ARR, primary contacts ghosting. Set a clear deadline this week. No response → Q3.</div></div></div>
+      <div class="exec-summary"><strong>🔴 High risk</strong> — Close May 30, unresponsive Champions, EB never engaged, 25% MEDDPICC, no SF expansion opp. Direct Alex Ivonika outreach this week or move to Q3.</div>
+    </div>
+  </div>
+
+  <!-- Gol -->
+  <div class="deal-card" data-risk="red" data-rm="aline">
+    <div class="deal-header" onclick="toggleDeal(this)">
+      <span>✈️</span><h3>Gol (Expansion)</h3>
+      <span class="badge badge-red">No SF · No HubSpot</span>
+      <div class="deal-meta">$0 · No close date</div>
+      <span style="color:var(--muted);font-size:11px">▶</span>
+    </div>
+    <div class="deal-body">
+      <div class="churn-card"><span style="color:#fca5a5">🔴</span> No SF, no HubSpot, no next step. Create opp and confirm current status with Minders.</div>
+    </div>
+  </div>
+
+  <!-- Riachuelo -->
+  <div class="deal-card" data-risk="orange" data-rm="aline">
+    <div class="deal-header" onclick="toggleDeal(this)">
+      <span>👗</span><h3>Riachuelo</h3>
+      <span class="badge badge-orange">SF=Q4 Dec/26</span>
+      <div class="deal-meta">$0 · SF close Dec 2026</div>
+      <span style="color:var(--muted);font-size:11px">▶</span>
+    </div>
+    <div class="deal-body">
+      <div class="churn-card"><span style="color:#fdba74">🟠</span> RM projects Q2, SF shows Q4/Dec 2026 at Stage 2-Qual. Is there an expansion that could close sooner, or does the RM projection need to be adjusted?</div>
+      <div class="churn-card"><span style="color:#fde047">🟡</span> Not in HubSpot. Add to HubSpot and log next step.</div>
+    </div>
+  </div>
+
+  <!-- PraValer -->
+  <div class="deal-card" data-risk="red" data-rm="aline">
+    <div class="deal-header" onclick="toggleDeal(this)">
+      <span>⚠️</span><h3>PraValer</h3>
+      <div class="score-bar-wrap"><div class="score-bar"><div class="score-bar-fill" style="width:25%;background:#ef4444"></div></div><span style="font-size:10px;color:var(--muted)">25%</span></div>
+      <span class="badge badge-red">Close Apr 30 — 15 days</span>
+      <div class="deal-meta">$11,664 · WORST CASE</div>
+      <span style="color:var(--muted);font-size:11px">▶</span>
+    </div>
+    <div class="deal-body">
+      <div class="sources-row"><span class="src-chip">RM ✅</span><span class="src-chip">HubSpot ✅</span><span class="src-chip">SF ✅</span><span class="src-chip" style="color:#fca5a5">WORST CASE</span></div>
+      <div class="pattern-box">📋 Churn risk since February. Positive reversal in March with new product team meetings. Apr 8: OF being prepared including Experiment. Real momentum but tight window — close Apr 30, 15 days.</div>
+      <div class="coaching-title">🎯 Coaching for Aline</div>
+      <div class="coaching-item"><span class="coaching-num">1.</span><div><div class="coaching-item-title">Was the OF sent? This is a binary question determining the forecast</div><div class="coaching-item-body">If yes — what was Fernando Dufour's reaction? If no — what is the blocker? With 15 days to close, every day without the OF in the customer's hands is a day lost.</div></div></div>
+      <div class="coaching-item"><span class="coaching-num">2.</span><div><div class="coaching-item-title">Define PoV success criteria with Fernando before he signs</div><div class="coaching-item-body">Despite the churn risk reversal, Metrics remain empty. Fernando must agree on what "success" looks like. Without criteria, the PoV results are subjective and the renewal remains fragile.</div></div></div>
+      <div class="exec-summary"><strong>🔴 High urgency</strong> — $11,664 WORST CASE, Apr 30 close, OF status unknown. Confirm status today.</div>
+    </div>
+  </div>
+
+  <!-- Nomad -->
+  <div class="deal-card" data-risk="orange" data-rm="aline">
+    <div class="deal-header" onclick="toggleDeal(this)">
+      <span>💸</span><h3>Nomad</h3>
+      <div class="score-bar-wrap"><div class="score-bar"><div class="score-bar-fill" style="width:25%;background:#f97316"></div></div><span style="font-size:10px;color:var(--muted)">25%</span></div>
+      <span class="badge badge-orange">Close Apr 30</span>
+      <div class="deal-meta">$4,651 · WORST CASE</div>
+      <span style="color:var(--muted);font-size:11px">▶</span>
+    </div>
+    <div class="deal-body">
+      <div class="sources-row"><span class="src-chip">RM ✅</span><span class="src-chip">HubSpot ✅</span><span class="src-chip">SF ✅</span><span class="src-chip" style="color:#fca5a5">WORST CASE</span></div>
+      <div class="pattern-box">📋 Stable renewal rhythm — consistent weekly updates (Apr 8, Mar 31, Mar 25, Mar 10, Feb 13). Gabriel Pinto engaged. OF with new PPL being prepared for end-of-week meeting.</div>
+      <div class="coaching-title">🎯 Coaching for Aline</div>
+      <div class="coaching-item"><span class="coaching-num">1.</span><div><div class="coaching-item-title">Capture Metrics and Decision Criteria in the end-of-week meeting</div><div class="coaching-item-body">Ask Gabriel: "What Amplitude data has been most valuable this year?" and "What criteria will you use to confirm the renewal?" Even one metric strengthens the close argument.</div></div></div>
+      <div class="coaching-item"><span class="coaching-num">2.</span><div><div class="coaching-item-title">Confirm and log the specific meeting date today</div><div class="coaching-item-body">"End of week" is not a logged next step. Confirm the exact date with Minders and log it in both SF and HubSpot.</div></div></div>
+      <div class="exec-summary"><strong>🟡 Low risk</strong> — Stable renewal. Main action: capture Metrics and Decision Criteria in the upcoming meeting.</div>
+    </div>
+  </div>
+
+  <!-- ClearSale -->
+  <div class="deal-card" data-risk="orange" data-rm="aline">
+    <div class="deal-header" onclick="toggleDeal(this)">
+      <span>❌</span><h3>ClearSale (Churn)</h3>
+      <span class="badge badge-orange">SF open vs RM churn</span>
+      <div class="deal-meta">$0 · SF close May 31</div>
+      <span style="color:var(--muted);font-size:11px">▶</span>
+    </div>
+    <div class="deal-body">
+      <div class="churn-card"><span style="color:#fdba74">🟠</span> SF shows open Stage 2-Qual (Luiz Gustavo Amorim), RM classifies as churn. Align with Luiz Gustavo today: active retention or confirmed churn?</div>
+      <div class="churn-card"><span style="color:#fca5a5">🔴</span> If churn confirmed — close the SF opp immediately.</div>
+    </div>
+  </div>
+
+  <!-- G4 + Trela -->
+  <div class="deal-card" data-risk="gray" data-rm="aline">
+    <div class="deal-header" onclick="toggleDeal(this)">
+      <span>❌</span><h3>G4 Educação + Trela (Churn)</h3>
+      <span class="badge badge-gray">Both Closed Lost ✓</span>
+      <div class="deal-meta">$0 · SF aligned</div>
+      <span style="color:var(--muted);font-size:11px">▶</span>
+    </div>
+    <div class="deal-body">
+      <div class="churn-card"><span class="ok">✅</span> G4 Educação: SF Closed Lost May 31 (Marilisa). 🟡 Document churn reason.</div>
+      <div class="churn-card"><span class="ok">✅</span> Trela: SF Closed Lost Jun 30 (Marilisa). Confirmed — Brazil operations closure (Lorrane Idevic).</div>
+    </div>
+  </div>
+
+</div><!-- end rm-aline -->
+
+<!-- ALEJANDRO -->
+<div class="rm-header" onclick="toggleRM(this)">
+  <span>👤</span>
+  <h2>Alejandro Fernandez Canto</h2>
+  <div class="rm-stats">$205,296 Best Case &nbsp;·&nbsp; 5 deals</div>
+  <span class="chevron">▼</span>
+</div>
+<div class="rm-deals" id="rm-alejandro">
+
+  <!-- Banco Guayaquil -->
+  <div class="deal-card" data-risk="red" data-rm="alejandro">
+    <div class="deal-header" onclick="toggleDeal(this)">
+      <span>🏦</span><h3>Banco Guayaquil</h3>
+      <div class="score-bar-wrap"><div class="score-bar"><div class="score-bar-fill" style="width:0%;background:#ef4444"></div></div><span style="font-size:10px;color:var(--muted)">0%</span></div>
+      <span class="badge badge-red">SF=Q3 · 0% MEDDPICC</span>
+      <div class="deal-meta">$150,000 · SF close Jul 14</div>
+      <span style="color:var(--muted);font-size:11px">▶</span>
+    </div>
+    <div class="deal-body">
+      <div class="sources-row"><span class="src-chip">RM ✅</span><span class="src-chip">HubSpot ✅</span><span class="src-chip">SF ✅ Q3/Jul</span><span class="src-chip">BEST CASE</span></div>
+      <div class="pattern-box">📋 High-volume early-stage engagement. Multiple executive meetings (Mar 23, Mar 27, Apr 13 in-person visit in Guayaquil). Despite the volume of interactions, MEDDPICC is completely empty. Apr 13 visit happened yesterday — it must be the source of qualification data.</div>
+      <div class="coaching-title">🎯 Coaching for Alejandro</div>
+      <div class="coaching-item"><span class="coaching-num">1.</span><div><div class="coaching-item-title">Log the Apr 13 visit outcome immediately</div><div class="coaching-item-body">A $150K deal at Stage 1 with 0% MEDDPICC cannot stay in Q2 forecast without at least: an EB name, a compelling event, and a decision timeline. Debrief Minders today and capture everything in SF.</div></div></div>
+      <div class="coaching-item"><span class="coaching-num">2.</span><div><div class="coaching-item-title">Align timeline: RM Q2 vs SF Q3/Jul — validate post-visit</div><div class="coaching-item-body">$150K at Stage 1 closing Q2 requires an RFP or formal process to already exist. If the Apr 13 visit showed no imminent RFP, move the RM close date to Q3.</div></div></div>
+      <div class="coaching-item"><span class="coaching-num">3.</span><div><div class="coaching-item-title">Identify the Economic Buyer — despite multiple executive meetings</div><div class="coaching-item-body">Meetings with Pedro (COO) happened but no formal EB has been mapped. Ask directly in the visit debrief: "Who is the decision-maker for a project like this?"</div></div></div>
+      <div class="exec-summary"><strong>🔴 High risk</strong> — $150K, 0% MEDDPICC, Q2 close projection requires immediate validation from yesterday's visit. Debrief Minders today.</div>
+    </div>
+  </div>
+
+  <!-- Tenpo -->
+  <div class="deal-card" data-risk="red" data-rm="alejandro">
+    <div class="deal-header" onclick="toggleDeal(this)">
+      <span>💼</span><h3>Tenpo</h3>
+      <span class="badge badge-red">SF=Q4 · No HubSpot</span>
+      <div class="deal-meta">$30,000 · SF close Oct/26</div>
+      <span style="color:var(--muted);font-size:11px">▶</span>
+    </div>
+    <div class="deal-body">
+      <div class="sources-row"><span class="src-chip">RM ✅</span><span class="src-chip">HubSpot ❌</span><span class="src-chip">SF ✅ Stage 1 / Renato Limao</span><span class="src-chip">BEST CASE</span></div>
+      <div class="churn-card"><span style="color:#fdba74">🟠</span> RM projects Q2 ($30K), SF shows Stage 1-Discovery closing Q4/Oct. What needs to happen to realistically close in Q2?</div>
+      <div class="churn-card"><span style="color:#fca5a5">🔴</span> No HubSpot, no next step. Add to HubSpot, log next step, and align timeline with Renato Limao.</div>
+    </div>
+  </div>
+
+  <!-- Supervielle -->
+  <div class="deal-card" data-risk="orange" data-rm="alejandro">
+    <div class="deal-header" onclick="toggleDeal(this)">
+      <span>🏦</span><h3>Supervielle</h3>
+      <div class="score-bar-wrap"><div class="score-bar"><div class="score-bar-fill" style="width:88%;background:#22c55e"></div></div><span style="font-size:10px;color:var(--muted)">88%</span></div>
+      <span class="badge badge-orange">Legal/tax blocker</span>
+      <div class="deal-meta">$24,000 · Close May 29</div>
+      <span style="color:var(--muted);font-size:11px">▶</span>
+    </div>
+    <div class="deal-body">
+      <div class="sources-row"><span class="src-chip">RM ✅</span><span class="src-chip">HubSpot ✅</span><span class="src-chip">SF ✅</span><span class="src-chip">BEST CASE</span></div>
+      <div class="pattern-box">📋 Late-stage deal blocked by legal/tax issues in Argentina. Apr 7: tax team raised 2 objections. Apr 10: legal documents returned with comments. Week of Apr 13: legal meeting planned. Cristian (Champion) is allocated with April start date — deal not at risk of being lost, only timing.</div>
+      <div class="coaching-title">🎯 Coaching for Alejandro</div>
+      <div class="coaching-item"><span class="coaching-num">1.</span><div><div class="coaching-item-title">Confirm Apr 13 legal meeting outcome and validate Jun 12 signature date</div><div class="coaching-item-body">Were the 2 tax objections resolved? Is the Jun 12 signature target still valid? Log the answer today.</div></div></div>
+      <div class="coaching-item"><span class="coaching-num">2.</span><div><div class="coaching-item-title">Update HubSpot: Stage 6-Negotiation (currently shows Stage 4)</div><div class="coaching-item-body">SF is at Stage 6. Update HubSpot today for consistent pipeline tracking.</div></div></div>
+      <div class="exec-summary"><strong>🟡 Low risk</strong> — Best-qualified deal in Alejandro's portfolio (88% MEDDPICC, Cristian allocated). Only variable: legal/tax timeline in Argentina. Confirm Apr 13 outcome.</div>
+    </div>
+  </div>
+
+  <!-- Migrante -->
+  <div class="deal-card" data-risk="orange" data-rm="alejandro">
+    <div class="deal-header" onclick="toggleDeal(this)">
+      <span>💱</span><h3>Migrante</h3>
+      <span class="badge badge-orange">Close Apr 24 — 9 days</span>
+      <div class="deal-meta">$1,296 · Close Apr 24</div>
+      <span style="color:var(--muted);font-size:11px">▶</span>
+    </div>
+    <div class="deal-body">
+      <div class="sources-row"><span class="src-chip">RM ✅</span><span class="src-chip">HubSpot ❌</span><span class="src-chip">SF ✅</span><span class="src-chip">BEST CASE</span></div>
+      <div class="churn-card"><span style="color:#fdba74">🟠</span> Meeting tomorrow Apr 14 is decisive — close in 9 days. Goal: confirm volume and lock in signature next steps.</div>
+      <div class="churn-card"><span style="color:#fde047">🟡</span> Add to HubSpot.</div>
+    </div>
+  </div>
+
+  <!-- Embonor -->
+  <div class="deal-card" data-risk="red" data-rm="alejandro">
+    <div class="deal-header" onclick="toggleDeal(this)">
+      <span>🍶</span><h3>Embonor Chile</h3>
+      <span class="badge badge-red">No SF · No HubSpot</span>
+      <div class="deal-meta">$0 · No stage</div>
+      <span style="color:var(--muted);font-size:11px">▶</span>
+    </div>
+    <div class="deal-body">
+      <div class="churn-card"><span style="color:#fca5a5">🔴</span> No SF, no HubSpot, no next step. Create opp and confirm current status.</div>
+    </div>
+  </div>
+
+</div><!-- end rm-alejandro -->
+
+<!-- SF WITHOUT RM -->
+<div class="section-title">🚨 SF Without RM</div>
+<div class="deal-card" data-risk="red">
+  <div class="deal-header" onclick="toggleDeal(this)">
+    <span>⚠️</span><h3>Finsus | Renewal | 2026-01</h3>
+    <span class="badge badge-red">Close expired Apr 1</span>
+    <div class="deal-meta">$0 · Stage 6 - Negotiation</div>
+    <span style="color:var(--muted);font-size:11px">▶</span>
+  </div>
+  <div class="deal-body">
+    <div class="churn-card"><span style="color:#fca5a5">🔴</span> Close date expired Apr 1. Was it closed, lost, or still in progress?</div>
+    <div class="churn-card"><span style="color:#fca5a5">🔴</span> Not in RM spreadsheet. Likely administrative opp. Confirm with Minders and update or close in SF.</div>
+  </div>
+</div>
+
+<!-- HUBSPOT TABLE -->
+<div class="section-title">📋 Validate with Partner — HubSpot Q2 without RM <span style="font-size:12px;color:var(--muted);font-weight:400">25 deals · $363,569</span></div>
+<table class="hub-table">
+<thead><tr><th>Deal</th><th>Stage</th><th>ARR</th><th>Close</th></tr></thead>
+<tbody>
+<tr><td>Cocos (Amplitude Experiments)</td><td>2 - Discover</td><td>$65,622</td><td>Jun 23</td></tr>
+<tr><td>Gol (Amplitude Expansion G&S)</td><td>2 - Discover</td><td>$55,647</td><td>Jun 30</td></tr>
+<tr><td>Fiducia (Amplitude)</td><td>2 - Discover</td><td>$50,000</td><td>Jun 30</td></tr>
+<tr><td>Openpass (Amplitude)</td><td>2 - Discover</td><td>$48,000</td><td>May 29</td></tr>
+<tr><td>Jeeves Inc. (BRAZE)</td><td>1 - First Call</td><td>$45,000</td><td>May 26</td></tr>
+<tr><td>TuBoleta - Amplitude - NB</td><td>3 - Consensus</td><td>$25,500</td><td>May 31</td></tr>
+<tr><td>Banco Ciudad (Buepp)</td><td>3 - Consensus</td><td>$24,000</td><td>Jun 30</td></tr>
+<tr><td>Banco Rendimento</td><td>2 - Discover</td><td>$24,000</td><td>Jun 30</td></tr>
+<tr><td>RecargaPay (Amplitude Services)</td><td>3 - Consensus</td><td>$15,000</td><td class="urgent">Apr 30 ⚡</td></tr>
+<tr><td>OnCity (Services)</td><td>3 - Consensus</td><td>$10,800</td><td>May 15</td></tr>
+<tr><td>BanCoppel - Amplitude - NB</td><td>0 - Engage</td><td>$0</td><td>Jun 18</td></tr>
+<tr><td>Club America - Braze - NB</td><td>2 - Discover</td><td>$0</td><td class="urgent">Apr 24 ⚡</td></tr>
+<tr><td>Compartamos (Experiments)</td><td>0 - Engage</td><td>$0</td><td>Jun 30</td></tr>
+<tr><td>Consubanco (Expansion)</td><td>0 - Engage</td><td>$0</td><td>Jun 30</td></tr>
+<tr><td>Copec (Experiments Expansion)</td><td>0 - Engage</td><td>$0</td><td>Jun 30</td></tr>
+<tr><td>Flashapp (Amplitude)</td><td>0 - Engage</td><td>$0</td><td>Jun 30</td></tr>
+<tr><td>Fracttal (Martech services)</td><td>2 - Discover</td><td>$0</td><td>May 6</td></tr>
+<tr><td>Gol (Amplitude Expansion Services)</td><td>1 - First Call</td><td>$0</td><td>May 31</td></tr>
+<tr><td>Jeitto (Braze)</td><td>2 - Discover</td><td>$0</td><td>Jun 30</td></tr>
+<tr><td>MCS (Amplitude Renewal)</td><td>0 - Engage</td><td>$0</td><td>May 20</td></tr>
+<tr><td>Midway (Amplitude)</td><td>1 - First Call</td><td>$0</td><td>May 31</td></tr>
+<tr><td>Mobility ADO - Amplitude - NB</td><td>2 - Discover</td><td>$0</td><td>May 31</td></tr>
+<tr><td>Nave - Galicia (Services)</td><td>5 - Business Justification</td><td>$0</td><td>May 29</td></tr>
+<tr><td>Tur.com (Amplitude Expansion)</td><td>0 - Engage</td><td>$0</td><td>May 31</td></tr>
+<tr><td>Viacredi (Amplitude)</td><td>2 - Discover</td><td>$0</td><td>May 16</td></tr>
+</tbody>
+</table>
+
+<!-- TOP ACTIONS -->
+<div class="section-title">📌 Top Actions This Week</div>
+<div class="actions-grid">
+  <div class="action-col">
+    <h3 class="red">🔴 Critical</h3>
+    <div class="action-item"><div class="action-rm">Mati</div><div class="action-deal">Zenfi</div><div class="action-desc">Proposal deadline (7 days from Apr 6) has passed. Was it sent? Send today — anchor Metrics and Decision Criteria first.</div></div>
+    <div class="action-item"><div class="action-rm">Mati</div><div class="action-deal">Trii</div><div class="action-desc">36 days silent + PostHog active. Call Minders today: what happened with the Apr 1 invoice? Confirm real deal status.</div></div>
+    <div class="action-item"><div class="action-rm">Aline</div><div class="action-deal">Serasa $200K</div><div class="action-desc">Create SF + HubSpot opp today. $200K cannot be forecasted with zero system presence.</div></div>
+    <div class="action-item"><div class="action-rm">Aline</div><div class="action-deal">PraValer</div><div class="action-desc">Was the OF with Experiment sent? Close Apr 30 = 15 days. Confirm status today.</div></div>
+    <div class="action-item"><div class="action-rm">Aline</div><div class="action-deal">Attus</div><div class="action-desc">SF: Closed Lost Apr 8. Remove from active Q2 pipeline in RM spreadsheet. Capture loss reason.</div></div>
+    <div class="action-item"><div class="action-rm">Aline</div><div class="action-deal">Gran Cursos</div><div class="action-desc">Find Alex Ivonika's direct contact. Reach out this week. No response by Apr 22 → move to Q3.</div></div>
+    <div class="action-item"><div class="action-rm">Alejandro</div><div class="action-deal">Banco Guayaquil</div><div class="action-desc">Debrief Apr 13 visit with Minders. Log EB, compelling event, decision timeline in SF today.</div></div>
+    <div class="action-item"><div class="action-rm">Alejandro</div><div class="action-deal">Migrante</div><div class="action-desc">Meeting tomorrow Apr 14. Close in 9 days. Goal: confirm volume + lock in signature steps.</div></div>
+  </div>
+  <div class="action-col">
+    <h3 class="orange">🟠 Attention</h3>
+    <div class="action-item"><div class="action-rm">Mati</div><div class="action-deal">Lulo Bank</div><div class="action-desc">PoV closes Apr 30. Lock in Metrics (PoV success criteria) and identify EB with Christian Martinez.</div></div>
+    <div class="action-item"><div class="action-rm">Mati</div><div class="action-deal">Banco Covalto</div><div class="action-desc">Confirm in-person meeting date with Sergio Arias. Reframe compelling event around current channel performance.</div></div>
+    <div class="action-item"><div class="action-rm">Aline</div><div class="action-deal">Sem Parar</div><div class="action-desc">Send POC kickoff invite today. Expand to Director-level peer and CFO. Address EB gap (Vicente CTO).</div></div>
+    <div class="action-item"><div class="action-rm">Aline</div><div class="action-deal">Caju</div><div class="action-desc">Align Stage SF=2 vs HUB=4 with Renato Limao. Get ahead of vendor survey criteria with Felipe Mosci.</div></div>
+    <div class="action-item"><div class="action-rm">Aline</div><div class="action-deal">CRM&amp;Bonus</div><div class="action-desc">15 days silent. Escalate to Andre Barbosa (EB) to unblock Jack/Nico and start POC this week.</div></div>
+    <div class="action-item"><div class="action-rm">Aline</div><div class="action-deal">Asaas</div><div class="action-desc">Schedule alignment meeting with Pedro this week. Primary goal: identify the Economic Buyer.</div></div>
+    <div class="action-item"><div class="action-rm">Aline</div><div class="action-deal">ClearSale</div><div class="action-desc">Align with Luiz Gustavo: open SF opp vs churn in RM. If churn confirmed, close SF opp.</div></div>
+    <div class="action-item"><div class="action-rm">Aline</div><div class="action-deal">Localiza $235K</div><div class="action-desc">Send formal PoC success plan to Reggiani. Schedule first progress review (e.g., May 5).</div></div>
+    <div class="action-item"><div class="action-rm">Alejandro</div><div class="action-deal">Supervielle</div><div class="action-desc">Log Apr 13 legal meeting outcome. Confirm Jun 12 signature target. Update HubSpot to Stage 6.</div></div>
+  </div>
+  <div class="action-col">
+    <h3 class="yellow">🟡 Update</h3>
+    <div class="action-item"><div class="action-rm">Mati</div><div class="action-deal">Distelsa</div><div class="action-desc">Align SF Jun 16 vs HubSpot May 15. Activate contact beyond Mario de Leon.</div></div>
+    <div class="action-item"><div class="action-rm">Mati</div><div class="action-deal">Arca Continental</div><div class="action-desc">Log Apr 14 meeting outcome. Add to HubSpot.</div></div>
+    <div class="action-item"><div class="action-rm">Aline</div><div class="action-deal">Stage mismatches</div><div class="action-desc">Fix SF/HubSpot stage mismatches: Lulo Bank, PraValer, Caju, Supervielle.</div></div>
+    <div class="action-item"><div class="action-rm">Aline</div><div class="action-deal">Gol + Embonor</div><div class="action-desc">Create SF opps and log current status.</div></div>
+    <div class="action-item"><div class="action-rm">Aline</div><div class="action-deal">Asaas · Tenpo · Riachuelo</div><div class="action-desc">SF confirms opp but Q4 close. Review Q2 expectation in RM.</div></div>
+    <div class="action-item"><div class="action-rm">Aline</div><div class="action-deal">Nomad</div><div class="action-desc">Confirm end-of-week meeting date. Capture Metrics + Decision Criteria with Gabriel Pinto.</div></div>
+    <div class="action-item"><div class="action-rm">Alejandro</div><div class="action-deal">Tenpo + Embonor</div><div class="action-desc">Add to HubSpot, log next steps, align close dates.</div></div>
+  </div>
+</div>
+
+<div style="text-align:center;color:var(--muted);font-size:11px;margin:32px 0 20px;">
+  Auto-generated Apr 15, 2026 · Sources: Outreach/Salesforce + HubSpot + RM Spreadsheet · Next update: Monday Apr 20 at 12:00 PM BRT
+</div>
+
+</div><!-- end main -->
+
+<script>
+function toggleRM(header) {
+  header.classList.toggle('open');
+  const deals = header.nextElementSibling;
+  deals.classList.toggle('open');
+}
+
+function toggleDeal(header) {
+  const body = header.nextElementSibling;
+  const arrow = header.querySelector('span:last-child');
+  body.classList.toggle('open');
+  arrow.textContent = body.classList.contains('open') ? '▼' : '▶';
+}
+
+function filterDeals(risk) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('.deal-card').forEach(card => {
+    if (risk === 'all') { card.style.display = ''; return; }
+    card.style.display = card.dataset.risk === risk ? '' : 'none';
+  });
+  // Auto-open RM sections that have visible cards
+  document.querySelectorAll('.rm-deals').forEach(section => {
+    const visible = [...section.querySelectorAll('.deal-card')].some(c => c.style.display !== 'none');
+    const header = section.previousElementSibling;
+    if (visible) { section.classList.add('open'); header.classList.add('open'); }
+    else { section.classList.remove('open'); header.classList.remove('open'); }
+  });
+}
+
+function expandAll() {
+  document.querySelectorAll('.deal-body').forEach(b => b.classList.add('open'));
+  document.querySelectorAll('.deal-header span:last-child').forEach(a => a.textContent = '▼');
+  document.querySelectorAll('.rm-deals').forEach(d => d.classList.add('open'));
+  document.querySelectorAll('.rm-header').forEach(h => h.classList.add('open'));
+}
+
+function collapseAll() {
+  document.querySelectorAll('.deal-body').forEach(b => b.classList.remove('open'));
+  document.querySelectorAll('.deal-header span:last-child').forEach(a => a.textContent = '▶');
+}
+
+// Open first RM section by default (Mati already open via class)
+</script>
+</body>
+</html>
