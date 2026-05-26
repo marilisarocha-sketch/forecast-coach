@@ -103,6 +103,7 @@ a{color:var(--accent)}
   <button class="tab-btn active" id="tbtn_coach"   onclick="switchTab('coach')">Coach</button>
   <button class="tab-btn"        id="tbtn_sf"       onclick="switchTab('sf')">SF Update <span style="font-size:.7rem;color:var(--tm)">(Marilisa only)</span></button>
   <button class="tab-btn"        id="tbtn_delta"    onclick="switchTab('delta')">Delta <span style="font-size:.7rem;color:var(--tm)">(Marilisa only)</span></button>
+  <button class="tab-btn"        id="tbtn_q3"       onclick="switchTab('q3')">Q3 Pipeline 🔭</button>
 </nav>
 
 <div id="tab_coach" class="tab-pane active">
@@ -2671,6 +2672,83 @@ ps: Procurement is explicitly listed as part of the p…</td></tr><tr><td style=
   <div style="font-size:2rem;margin-bottom:.75rem">✅</div>
   <div style="font-size:1.1rem;font-weight:700;color:#22c55e;margin-bottom:.5rem">No changes since 2026-04-29</div>
   <div style="color:var(--tm)">All deals stable. Next snapshot update: Wednesday.</div>
+</div></div></div>
+<div id="tab_q3"    class="tab-pane"><div class="main"><div style="color:var(--tm);font-size:.78rem;margin-bottom:1rem">Fonte: aba "1" da planilha RM &bull; 3 RMs detectados</div>
+<div class="coverage-wrap" style="margin-bottom:1.5rem">
+  <div class="section-title" style="font-size:.95rem;margin-bottom:.6rem">Q3 2026 — Pipeline Summary</div>
+  <table class="coverage-table">
+    <thead><tr><th>RM</th><th style="text-align:right">Total ARR</th></tr></thead>
+    <tbody><tr><td style="color:#fb923c;font-weight:600">Alejandro Fernandez Canto</td><td style="text-align:right">$470,000</td></tr><tr><td style="color:#34d399;font-weight:600">Aline Onishi</td><td style="text-align:right">$280,000</td></tr><tr><td style="color:#818cf8;font-weight:600">Mati</td><td style="text-align:right">$69,142</td></tr>
+    <tr style="border-top:2px solid var(--border);font-weight:700">
+      <td>TOTAL</td>
+      <td style="text-align:right">$819,142</td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+<div class="rm-section" style="margin-bottom:1.5rem">
+  <div class="rm-header" onclick="toggleRM('q3rm0')" style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:.75rem 1rem;cursor:pointer;display:flex;align-items:center;justify-content:space-between">
+    <span style="font-weight:700;color:#fb923c;font-size:1rem">Alejandro Fernandez Canto</span>
+    <span style="font-size:.85rem;color:var(--tm)">$470,000 &nbsp;<span id="chev_q3rm0" class="chevron" style="display:inline-block;transition:transform .2s">&#9660;</span></span>
+  </div>
+  <div id="body_q3rm0" style="padding:.75rem 0">
+<div style="margin-bottom:1rem">
+  <div style="font-size:.8rem;font-weight:700;color:#3b82f6;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem">
+    BEST CASE &nbsp;<span style="font-weight:400;font-size:.75rem;color:var(--tm)">$470,000</span>
+  </div>
+  <table class="coverage-table">
+    <thead><tr><th>Deal</th><th style="text-align:right">ARR</th><th>Notes / Swing</th></tr></thead>
+    <tbody><tr><td style="font-weight:500">Banco Macro</td><td style="text-align:right;font-weight:600;white-space:nowrap">$100,000</td><td style="color:#6b7280;font-size:.82rem">21 May - Ai in Finance - Meeting Nico Martins with Peter.
+
+Week of May 18 (planned). Target to present commercial propos…</td></tr><tr><td style="font-weight:500">Tenpo</td><td style="text-align:right;font-weight:600;white-space:nowrap">—</td><td style="color:#6b7280;font-size:.82rem">May 31 - We expect to have clear insights that we have a timeframe before end of year; if not close -lost.
+
+CLOSE LOST
+M…</td></tr><tr><td style="font-weight:500">Claro Pay (ARGENTINA)</td><td style="text-align:right;font-weight:600;white-space:nowrap">$30,000</td><td style="color:#6b7280;font-size:.82rem">May 13 — Target date for meeting with Martín. Close scope, define investment, unlock procurement. (DELAYED)
+
+May 11 — If…</td></tr><tr><td style="font-weight:500">Mercado Libre</td><td style="text-align:right;font-weight:600;white-space:nowrap">$250,000</td><td style="color:#6b7280;font-size:.82rem">Add Events + SR (Optional)</td></tr><tr><td style="font-weight:500">Prestamype</td><td style="text-align:right;font-weight:600;white-space:nowrap">$30,000</td><td style="color:#6b7280;font-size:.82rem">May8.26 Meeting scheduled to Review implementation scope, ownership, and rollout approach with business and technical te…</td></tr><tr><td style="font-weight:500">Bidcom</td><td style="text-align:right;font-weight:600;white-space:nowrap">$30,000</td><td style="color:#6b7280;font-size:.82rem">May 25, 2026
+Pending update.
+
+May 20, 2026
+Expected to gain more visibility this week on the tech overview timing and ke…</td></tr><tr><td style="font-weight:500">Auna</td><td style="text-align:right;font-weight:600;white-space:nowrap">—</td><td style="color:#6b7280;font-size:.82rem">May 5. CLOSE LOST confirmed by procurement team.
+
+Abp 7.
+Close Lost. marilisa.rocha@amplitude.com create an email to get…</td></tr><tr><td style="font-weight:500">MCS</td><td style="text-align:right;font-weight:600;white-space:nowrap">—</td><td style="color:#6b7280;font-size:.82rem">End-date 31 Julio</td></tr><tr><td style="font-weight:500">Banco Consorcio</td><td style="text-align:right;font-weight:600;white-space:nowrap">—</td><td style="color:#6b7280;font-size:.82rem">Octubre</td></tr><tr><td style="font-weight:500">Copec</td><td style="text-align:right;font-weight:600;white-space:nowrap">$30,000</td><td style="color:#6b7280;font-size:.82rem">Octubre</td></tr><tr><td style="font-weight:500">BNA</td><td style="text-align:right;font-weight:600;white-space:nowrap">—</td><td style="color:#6b7280;font-size:.82rem">Churned</td></tr><tr><td style="font-weight:500">Xepelin</td><td style="text-align:right;font-weight:600;white-space:nowrap">—</td><td style="color:#6b7280;font-size:.82rem">Churned</td></tr><tr><td style="font-weight:500">Banza</td><td style="text-align:right;font-weight:600;white-space:nowrap">—</td><td style="color:#6b7280;font-size:.82rem">Churned</td></tr></tbody>
+  </table>
+</div></div>
+</div>
+<div class="rm-section" style="margin-bottom:1.5rem">
+  <div class="rm-header" onclick="toggleRM('q3rm1')" style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:.75rem 1rem;cursor:pointer;display:flex;align-items:center;justify-content:space-between">
+    <span style="font-weight:700;color:#34d399;font-size:1rem">Aline Onishi</span>
+    <span style="font-size:.85rem;color:var(--tm)">$280,000 &nbsp;<span id="chev_q3rm1" class="chevron" style="display:inline-block;transition:transform .2s">&#9660;</span></span>
+  </div>
+  <div id="body_q3rm1" style="padding:.75rem 0">
+<div style="margin-bottom:1rem">
+  <div style="font-size:.8rem;font-weight:700;color:#3b82f6;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem">
+    BEST CASE &nbsp;<span style="font-weight:400;font-size:.75rem;color:var(--tm)">$280,000</span>
+  </div>
+  <table class="coverage-table">
+    <thead><tr><th>Deal</th><th style="text-align:right">ARR</th><th>Notes / Swing</th></tr></thead>
+    <tbody><tr><td style="font-weight:500">Natura (New Business)</td><td style="text-align:right;font-weight:600;white-space:nowrap">$100,000</td><td style="color:#6b7280;font-size:.82rem">MAR: The people who we talked left the company, we are trying to find the correct people to continue the discussions.
+
+F…</td></tr><tr><td style="font-weight:500">Banco Rendimento (New Business)</td><td style="text-align:right;font-weight:600;white-space:nowrap">$30,000</td><td style="color:#6b7280;font-size:.82rem">MAR12: Gabriela informed that, with her departure, the new point of contact is Bruna. I’ve sent three messages to Bruna,…</td></tr><tr><td style="font-weight:500">Flash (New Business)</td><td style="text-align:right;font-weight:600;white-space:nowrap">$30,000</td><td style="color:#6b7280;font-size:.82rem">In engage phase</td></tr><tr><td style="font-weight:500">Jeitto</td><td style="text-align:right;font-weight:600;white-space:nowrap">$30,000</td><td style="color:#6b7280;font-size:.82rem">—</td></tr><tr><td style="font-weight:500">Koin</td><td style="text-align:right;font-weight:600;white-space:nowrap">$50,000</td><td style="color:#6b7280;font-size:.82rem">—</td></tr><tr><td style="font-weight:500">Riachuelo</td><td style="text-align:right;font-weight:600;white-space:nowrap">$40,000</td><td style="color:#6b7280;font-size:.82rem">- Support the team on understand the volume needed for session replay, gathering materials with more use cases and score…</td></tr><tr><td style="font-weight:500">Will Bank</td><td style="text-align:right;font-weight:600;white-space:nowrap">—</td><td style="color:#6b7280;font-size:.82rem">Churn</td></tr><tr><td style="font-weight:500">Vitat</td><td style="text-align:right;font-weight:600;white-space:nowrap">—</td><td style="color:#6b7280;font-size:.82rem">Churn</td></tr></tbody>
+  </table>
+</div></div>
+</div>
+<div class="rm-section" style="margin-bottom:1.5rem">
+  <div class="rm-header" onclick="toggleRM('q3rm2')" style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:.75rem 1rem;cursor:pointer;display:flex;align-items:center;justify-content:space-between">
+    <span style="font-weight:700;color:#818cf8;font-size:1rem">Mati</span>
+    <span style="font-size:.85rem;color:var(--tm)">$69,142 &nbsp;<span id="chev_q3rm2" class="chevron" style="display:inline-block;transition:transform .2s">&#9660;</span></span>
+  </div>
+  <div id="body_q3rm2" style="padding:.75rem 0">
+<div style="margin-bottom:1rem">
+  <div style="font-size:.8rem;font-weight:700;color:#3b82f6;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem">
+    BEST CASE &nbsp;<span style="font-weight:400;font-size:.75rem;color:var(--tm)">$69,142</span>
+  </div>
+  <table class="coverage-table">
+    <thead><tr><th>Deal</th><th style="text-align:right">ARR</th><th>Notes / Swing</th></tr></thead>
+    <tbody><tr><td style="font-weight:500">Banco Industrial de Guatemala (Session Replays) - (Ex. Eagle Hub)</td><td style="text-align:right;font-weight:600;white-space:nowrap">$9,142</td><td style="color:#6b7280;font-size:.82rem">350K Session Replays Add-on</td></tr><tr><td style="font-weight:500">Adopem Republica Dominicana</td><td style="text-align:right;font-weight:600;white-space:nowrap">$30,000</td><td style="color:#6b7280;font-size:.82rem">—</td></tr><tr><td style="font-weight:500">Alpha Inversion Republica Dominicana</td><td style="text-align:right;font-weight:600;white-space:nowrap">$30,000</td><td style="color:#6b7280;font-size:.82rem">—</td></tr></tbody>
+  </table>
+</div></div>
 </div></div></div>
 
 <footer class="footer">
